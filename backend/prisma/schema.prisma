@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OrderStatus {
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  REFUNDED
+}
+
+enum TenderMethod {
+  CARD
+  CASH
+}
+
+enum IdempotencyStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+model Order {
+  id         String      @id @default(uuid()) @db.Uuid
+  totalCents Int         @map("total_cents")
+  status     OrderStatus @default(PENDING)
+  createdAt  DateTime    @default(now()) @map("created_at")
+  updatedAt  DateTime    @updatedAt @map("updated_at")
+
+  payments   Payment[]
+
+  @@map("orders")
+}
+
+model Payment {
+  id             String       @id @default(uuid()) @db.Uuid
+  orderId        String       @map("order_id") @db.Uuid
+  amountCents    Int          @map("amount_cents")
+  method         TenderMethod
+  idempotencyKey String       @unique @map("idempotency_key") @db.VarChar(128)
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  order          Order        @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  refunds        Refund[]
+
+  @@index([orderId])
+  @@map("payments")
+}
+
+model Refund {
+  id             String   @id @default(uuid()) @db.Uuid
+  paymentId      String   @map("payment_id") @db.Uuid
+  amountCents    Int      @map("amount_cents")
+  idempotencyKey String   @unique @map("idempotency_key") @db.VarChar(128)
+  reason         String?  @db.VarChar(255)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  payment        Payment  @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+
+  @@index([paymentId])
+  @@map("refunds")
+}
+
+model IdempotencyRecord {
+  id             String            @id @default(uuid()) @db.Uuid
+  idempotencyKey String            @map("idempotency_key") @db.VarChar(128)
+  endpoint       String            @db.VarChar(128)
+  requestHash    String            @map("request_hash") @db.VarChar(64)
+  status         IdempotencyStatus @default(IN_PROGRESS)
+  responseCode   Int?              @map("response_code")
+  responseBody   Json?             @map("response_body")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+
+  @@unique([idempotencyKey, endpoint])
+  @@map("idempotency_records")
+}
