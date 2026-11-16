@@ -93,7 +93,7 @@ export class PaymentsService {
           orderId,
           amountCents: dto.amountCents,
           method: dto.method,
-          idempotencyKey: normalizedKey,
+          idempotencyKey: `${orderId}:${normalizedKey}`,
         },
       });
 

@@ -4,6 +4,7 @@ import { PrismaModule } from './prisma/prisma.module.js';
 import { HealthModule } from './health/health.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
+import { RefundsModule } from './refunds/refunds.module.js';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -13,6 +14,7 @@ import { PaymentsModule } from './payments/payments.module.js';
     HealthModule,
     OrdersModule,
     PaymentsModule,
+    RefundsModule,
   ],
 })
 export class AppModule {}
