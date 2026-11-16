@@ -1,0 +1,65 @@
+@baseUrl = http://localhost:3000
+
+### 1. Healthz (Readiness Check - Blue/Green)
+GET {{baseUrl}}/healthz
+Accept: application/json
+
+### 2. Crear una orden ($50.00 = 5000 centavos)
+# @name createOrder
+POST {{baseUrl}}/orders
+Content-Type: application/json
+
+{
+  "totalCents": 6000
+}
+
+### Capturar automáticamente el ID de la orden creada arriba
+@orderId = {{createOrder.response.body.id}}
+
+### 3. Consultar el estado y saldo de la orden creada
+GET {{baseUrl}}/orders/{{orderId}}
+Accept: application/json
+
+### 4. Listar las últimas 25 órdenes
+GET {{baseUrl}}/orders
+Accept: application/json
+
+### 5. Aplicar primer pago parcial con tarjeta ($30.00 = 3000 centavos)
+POST {{baseUrl}}/orders/{{orderId}}/payments
+Content-Type: application/json
+Idempotency-Key: pay-001
+
+{
+  "amountCents": 3000,
+  "method": "CARD"
+}
+
+### 6. Reintento idempotente del mismo pago (Debe devolver 201 sin cobrar doble)
+POST {{baseUrl}}/orders/{{orderId}}/payments
+Content-Type: application/json
+Idempotency-Key: pay-001
+
+{
+  "amountCents": 3000,
+  "method": "CARD"
+}
+
+### 7. Aplicar segundo pago parcial en efectivo ($20.00 = 2000 centavos -> Orden queda PAID)
+POST {{baseUrl}}/orders/{{orderId}}/payments
+Content-Type: application/json
+Idempotency-Key: pay-002
+
+{
+  "amountCents": 2000,
+  "method": "CASH"
+}
+
+### 8. Intentar sobrepago ($1.00 = 100 centavos -> Debe rechazar con 422)
+POST {{baseUrl}}/orders/{{orderId}}/payments
+Content-Type: application/json
+Idempotency-Key: pay-003
+
+{
+  "amountCents": 100,
+  "method": "CARD"
+}
