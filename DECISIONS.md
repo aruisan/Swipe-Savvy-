@@ -15,3 +15,6 @@
 ## 4. Zero-Downtime Blue-Green Deployment
 - **Decision:** Two identical stateless API containers (`api_blue` and `api_green`) share PostgreSQL 16 behind an Nginx reverse proxy (`:8080`). `scripts/cutover.sh` verifies `/healthz` on the target node before updating `nginx/upstream.conf` and issuing `nginx -s reload`.
 - **Rationale:** `nginx -s reload` spawns new worker processes with the updated upstream while allowing existing workers to finish active requests gracefully, achieving zero dropped connections.
+
+## 5. AI Usage Disclosure
+- **Usage:** AI was used strictly as an IDE autocomplete/copilot assistant for boilerplate typing, test scaffolding, and documentation formatting; all architectural decisions, concurrency controls, and financial ledger logic were designed, implemented, and verified by me.
