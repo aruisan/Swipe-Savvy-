@@ -34,13 +34,13 @@ Idempotency-Key: pay-001
   "method": "CARD"
 }
 
-### 6. Reintento idempotente del mismo pago (Debe devolver 201 sin cobrar doble)
+### 6. Reintento idempotente del mismo pago realizado
 POST {{baseUrl}}/orders/{{orderId}}/payments
 Content-Type: application/json
 Idempotency-Key: pay-001
 
 {
-  "amountCents": 3000,
+  "amountCents": 4000,
   "method": "CARD"
 }
 
